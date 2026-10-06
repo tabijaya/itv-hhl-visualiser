@@ -1,0 +1,3967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITV Household:Lift Benchmark Visualiser (Standalone)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --itv-spark-yellow: #DEEB52;
+            --itv-dark-green: #0F2323;
+            --itv-white: #FFFFFF;
+            --itv-teal: #17CCD3;
+            --itv-magenta: #C966CC;
+            --itv-purple: #6E55CC;
+            --itv-blue: #2F86F2;
+            --itv-green: #04A674;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-main);
+        }
+
+        body {
+            background-color: #F4F7F6;
+            color: var(--itv-dark-green);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--itv-dark-green);
+            color: var(--itv-white);
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 4px solid var(--itv-spark-yellow);
+            box-shadow: 0 4px 12px rgba(15, 35, 35, 0.15);
+        }
+
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .brand-badge {
+            background: var(--itv-spark-yellow);
+            color: var(--itv-dark-green);
+            font-weight: 800;
+            padding: 0.35rem 0.75rem;
+            border-radius: 4px;
+            font-size: 1.15rem;
+            letter-spacing: 1px;
+        }
+
+        .brand-title h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-title p {
+            font-size: 0.85rem;
+            color: #A3B8B8;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(222, 235, 82, 0.15);
+            border: 1px solid var(--itv-spark-yellow);
+            color: var(--itv-spark-yellow);
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--itv-spark-yellow);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--itv-spark-yellow);
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: var(--itv-dark-green);
+            padding: 0 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #A3B8B8;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.9rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: var(--itv-white);
+        }
+
+        .tab-btn.active {
+            color: var(--itv-spark-yellow);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--itv-spark-yellow);
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 1.5rem auto;
+            padding: 0 1.5rem;
+            flex: 1;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .control-panel {
+            background: var(--itv-white);
+            border-radius: 8px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(15, 35, 35, 0.06);
+            margin-bottom: 1.25rem;
+            display: grid;
+            grid-template-columns: 1fr 1.8fr 1.5fr auto;
+            gap: 1.25rem;
+            align-items: center;
+        }
+
+        label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #556B6B;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            border: 1.5px solid #D1DCDC;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--itv-dark-green);
+            background: #FAFCFC;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--itv-teal);
+        }
+
+        .channel-btn-group {
+            display: flex;
+            background: #EBF0F0;
+            padding: 4px;
+            border-radius: 6px;
+            gap: 4px;
+        }
+
+        .channel-btn {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: #556B6B;
+            transition: all 0.2s;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .channel-btn:hover:not(:disabled) {
+            color: var(--itv-dark-green);
+        }
+
+        .channel-btn.active {
+            background: var(--itv-white);
+            color: var(--itv-dark-green);
+            font-weight: 700;
+            box-shadow: 0 1px 4px rgba(15, 35, 35, 0.1);
+        }
+
+        .channel-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-green {
+            background: var(--itv-green);
+            color: var(--itv-white);
+            border: none;
+            border-radius: 6px;
+            padding: 0.65rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(4, 166, 116, 0.25);
+            height: 42px;
+            margin-top: 18px;
+            white-space: nowrap;
+        }
+
+        .btn-green:hover {
+            background: #038a60;
+            transform: translateY(-1px);
+        }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .kpi-card {
+            background: var(--itv-white);
+            border-radius: 8px;
+            padding: 1.1rem 1.25rem;
+            box-shadow: 0 2px 8px rgba(15, 35, 35, 0.06);
+            border-top: 4px solid #D1DCDC;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .kpi-card.low { border-top-color: var(--itv-magenta); }
+        .kpi-card.typical { border-top-color: var(--itv-blue); }
+        .kpi-card.strong { border-top-color: var(--itv-green); }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #6C8282;
+            letter-spacing: 0.05em;
+        }
+
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--itv-dark-green);
+            margin: 0.35rem 0 0.2rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .kpi-sub {
+            font-size: 0.8rem;
+            color: #6C8282;
+            font-weight: 500;
+        }
+
+        .visual-card {
+            background: var(--itv-white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(15, 35, 35, 0.06);
+            text-align: center;
+        }
+
+        canvas.chart-canvas {
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(15, 35, 35, 0.05);
+            display: block;
+            margin: 0 auto;
+            background: #FFFFFF;
+        }
+
+        .table-card {
+            background: var(--itv-white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(15, 35, 35, 0.06);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: #EBF0F0;
+            color: var(--itv-dark-green);
+            font-weight: 700;
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 2px solid #D1DCDC;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #EBF0F0;
+            color: var(--itv-dark-green);
+            font-weight: 500;
+        }
+
+        tr:hover td {
+            background: #FAFCFC;
+        }
+
+        .badge-robust {
+            background: rgba(4, 166, 116, 0.15);
+            color: var(--itv-green);
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 0.75rem;
+        }
+
+        .badge-medium {
+            background: rgba(47, 134, 242, 0.15);
+            color: var(--itv-blue);
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 0.75rem;
+        }
+
+        .badge-directional {
+            background: rgba(201, 102, 204, 0.15);
+            color: var(--itv-magenta);
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 0.75rem;
+        }
+
+        .badge-single {
+            background: rgba(110, 85, 204, 0.15);
+            color: var(--itv-purple);
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 0.75rem;
+        }
+
+        .row-btn {
+            background: var(--itv-dark-green);
+            color: var(--itv-white);
+            border: none;
+            padding: 0.35rem 0.7rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .row-btn:hover {
+            background: var(--itv-teal);
+            color: var(--itv-dark-green);
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .pill-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .pill-btn {
+            background: #EBF0F0;
+            border: none;
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #556B6B;
+            transition: all 0.2s;
+        }
+
+        .pill-btn.active {
+            background: var(--itv-dark-green);
+            color: var(--itv-spark-yellow);
+        }
+
+        footer {
+            background: var(--itv-dark-green);
+            color: #A3B8B8;
+            padding: 1.25rem 2rem;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand-block">
+            <div class="brand-badge">itv</div>
+            <div class="brand-title">
+                <h1>Household:Lift Benchmark Visualiser</h1>
+                <p>Measurement Innovation Team (MIT) &bull; Work Experience Project &bull; Tabbi Jayasuriya</p>
+            </div>
+        </div>
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            Standalone Web App &bull; Zero Server Dependency
+        </div>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-campaign')">PCA Campaign Visualiser</button>
+        <button class="tab-btn" onclick="switchTab('tab-benchmarks')">Category Benchmark Table</button>
+        <button class="tab-btn" onclick="switchTab('tab-overview')">Cross-Category Spectrum</button>
+    </div>
+
+    <div class="container">
+        <!-- TAB 1: PCA CAMPAIGN VISUALISER -->
+        <div id="tab-campaign" class="tab-panel active">
+            <div class="control-panel">
+                <div>
+                    <label for="categorySelect">1. Filter Category</label>
+                    <select id="categorySelect" onchange="onCategoryChange()">
+                        <option value="ALL">All Categories</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="campaignSelect">2. Select Campaign</label>
+                    <select id="campaignSelect" onchange="onCampaignChange()">
+                    </select>
+                </div>
+                <div>
+                    <label>3. Platform View</label>
+                    <div class="channel-btn-group">
+                        <button id="btnChanCombined" class="channel-btn active" onclick="setChannel('combined')">
+                            Overall (Combined)
+                        </button>
+                        <button id="btnChanLinear" class="channel-btn" onclick="setChannel('linear')">
+                            Linear
+                        </button>
+                        <button id="btnChanVod" class="channel-btn" onclick="setChannel('vod')">
+                            VOD
+                        </button>
+                    </div>
+                    <div id="scaleCapContainer" style="margin-top: 8px; display: none; align-items: center; gap: 7px; background: #FFF9E6; padding: 5px 8px; border-radius: 4px; border: 1px solid #E8E5CE;">
+                        <input type="checkbox" id="chkScaleCap" checked onchange="updateView()" style="accent-color: var(--itv-dark-green); width: 15px; height: 15px; cursor: pointer;">
+                        <label for="chkScaleCap" style="margin: 0; font-size: 11px; font-weight: 700; text-transform: none; cursor: pointer; color: var(--itv-dark-green);">
+                            Cap extreme outliers for readable scale
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn-green" onclick="downloadChart()">
+                        <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                        Download Slide Visual (PNG)
+                    </button>
+                </div>
+            </div>
+
+            <div class="kpi-row">
+                <div class="kpi-card" id="tierCard">
+                    <div class="kpi-label">Performance Tier</div>
+                    <div class="kpi-value" id="tierVal">—</div>
+                    <div class="kpi-sub" id="tierSub">Relative to Category</div>
+                </div>
+                <div class="kpi-card typical">
+                    <div class="kpi-label" id="upliftLabel">Campaign Uplift</div>
+                    <div class="kpi-value" id="upliftVal">—</div>
+                    <div class="kpi-sub" id="advertiserVal">—</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Platform Breakdown</div>
+                    <div class="kpi-value" id="breakdownVal" style="font-size: 1.15rem; font-weight: 700; margin-top: 0.6rem;">—</div>
+                    <div class="kpi-sub" id="breakdownSub">Delivery Split</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Category Benchmark</div>
+                    <div class="kpi-value" id="medianVal" style="color:var(--itv-teal);">—</div>
+                    <div class="kpi-sub" id="catCountVal">Typical Median</div>
+                </div>
+            </div>
+
+            <div id="outlierNotice" style="display:none; background:#FFFDE6; border-left:4px solid var(--itv-spark-yellow); padding:10px 14px; border-radius:4px; font-size:12px; color:var(--itv-dark-green); margin-bottom:12px; line-height:1.5;"></div>
+
+            <div class="visual-card">
+                <canvas id="pcaCanvas" class="chart-canvas" width="2200" height="960"></canvas>
+            </div>
+        </div>
+
+        <!-- TAB 2: CATEGORY BENCHMARK TABLE -->
+        <div id="tab-benchmarks" class="tab-panel">
+            <div class="table-card">
+                <div class="filter-bar">
+                    <div class="pill-group">
+                        <button class="pill-btn active" onclick="filterTable('all', this)">All Categories (14)</button>
+                        <button class="pill-btn" onclick="filterTable('core', this)">Core Categories n &ge; 5 (8)</button>
+                        <button class="pill-btn" onclick="filterTable('robust', this)">Robust n &ge; 10 (4)</button>
+                        <button class="pill-btn" onclick="filterTable('directional', this)">Directional n &lt; 5 (6)</button>
+                    </div>
+                    <button class="btn-green" style="margin-top:0;" onclick="exportTableCSV()">
+                        <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                        Export Benchmarks (CSV)
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="benchmarksTable">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Studies (n)</th>
+                                <th>Reliability</th>
+                                <th>Low (P25)</th>
+                                <th>Typical (Median P50)</th>
+                                <th>Strong (P75)</th>
+                                <th>Range (Min - Max)</th>
+                                <th>Advertisers</th>
+                                <th>Impressions</th>
+                                <th>Gross Spend</th>
+                                <th style="text-align:center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: OVERVIEW SPECTRUM -->
+        <div id="tab-overview" class="tab-panel">
+            <div class="control-panel" style="grid-template-columns: 1fr auto;">
+                <div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--itv-dark-green);">Cross-Category Performance Ranges</h3>
+                    <p style="font-size: 0.85rem; color: #556B6B; margin-top: 4px;">Comparison of Low (0 to P25), Typical (P25 to P75), and Median (+P50) uplift across Core Categories (n &ge; 5).</p>
+                </div>
+                <div>
+                    <button class="btn-green" onclick="downloadOverviewChart()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                        Download Overview Slide (PNG)
+                    </button>
+                </div>
+            </div>
+
+            <div class="visual-card">
+                <canvas id="overviewCanvas" class="chart-canvas" width="2400" height="1360"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        ITV plc &bull; Measurement Innovation Team (MIT) &bull; Data strictly filtered for Household:Lift (<code>product_code = 'hhl'</code>) &bull; Built by Tabbi Jayasuriya
+    </footer>
+
+    <script>
+        const allCampaigns = [
+  {
+    "base_id": "carly_jan25_hhl",
+    "advertiser": "carly",
+    "category": "Automotive",
+    "year": 2025,
+    "display_name": "CARLY \u2022 Carly Jan25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 65.87,
+        "impressions": 380946.0,
+        "spend": 20017.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 65.87,
+        "impressions": 380946.0,
+        "spend": 20017.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "carly_mar25_hhl",
+    "advertiser": "carly",
+    "category": "Automotive",
+    "year": 2025,
+    "display_name": "CARLY \u2022 Carly Mar25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 23.13,
+        "impressions": 447897.0,
+        "spend": 20494.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 23.13,
+        "impressions": 447897.0,
+        "spend": 20494.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "betway_feb26_hhl",
+    "advertiser": "betway",
+    "category": "Betting & Gambling",
+    "year": 2026,
+    "display_name": "BETWAY \u2022 Betway Feb26 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 1.88,
+        "impressions": 378971.0,
+        "spend": 14432.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 1.88,
+        "impressions": 378971.0,
+        "spend": 14432.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_apr2026_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2026,
+    "display_name": "MRQ \u2022 Mrq Apr2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 216.39,
+        "impressions": 1166811.0,
+        "spend": 60050.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 216.39,
+        "impressions": 1166811.0,
+        "spend": 60050.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_aug25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Aug25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 147.11,
+        "impressions": 1409954.0,
+        "spend": 98050.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 147.11,
+        "impressions": 1409954.0,
+        "spend": 98050.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_dec25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Dec25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 95.99,
+        "impressions": 866383.0,
+        "spend": 42700.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 95.99,
+        "impressions": 866383.0,
+        "spend": 42700.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_feb2026_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2026,
+    "display_name": "MRQ \u2022 Mrq Feb2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 101.4,
+        "impressions": 1777429.0,
+        "spend": 58837.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 101.4,
+        "impressions": 1777429.0,
+        "spend": 58837.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_jan25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Jan25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 70.84,
+        "impressions": 3265945.0,
+        "spend": 77000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 70.84,
+        "impressions": 3265945.0,
+        "spend": 77000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_jan26_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2026,
+    "display_name": "MRQ \u2022 Mrq Jan26 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 58.09,
+        "impressions": 2545208.0,
+        "spend": 51160.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 58.09,
+        "impressions": 2545208.0,
+        "spend": 51160.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_jul25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Jul25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 17.91,
+        "impressions": 7342498.0,
+        "spend": 162250.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 17.91,
+        "impressions": 7342498.0,
+        "spend": 162250.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_jun2026_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2026,
+    "display_name": "MRQ \u2022 Mrq Jun2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 49.38,
+        "impressions": 3332785.0,
+        "spend": 156347.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 49.38,
+        "impressions": 3332785.0,
+        "spend": 156347.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_jun25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Jun25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 39.06,
+        "impressions": 4576040.0,
+        "spend": 104500.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 39.06,
+        "impressions": 4576040.0,
+        "spend": 104500.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_mar2026_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2026,
+    "display_name": "MRQ \u2022 Mrq Mar2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 86.81,
+        "impressions": 508114.0,
+        "spend": 24373.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 86.81,
+        "impressions": 508114.0,
+        "spend": 24373.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_mar25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Mar25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 76.56,
+        "impressions": 914216.0,
+        "spend": 36000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 76.56,
+        "impressions": 914216.0,
+        "spend": 36000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_may2026_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2026,
+    "display_name": "MRQ \u2022 Mrq May2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 167.07,
+        "impressions": 1104014.0,
+        "spend": 55150.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 167.07,
+        "impressions": 1104014.0,
+        "spend": 55150.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_may25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq May25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 2.65,
+        "impressions": 574460.0,
+        "spend": 26310.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 2.65,
+        "impressions": 574460.0,
+        "spend": 26310.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_nov25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Nov25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 200.23,
+        "impressions": 850273.0,
+        "spend": 42700.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 200.23,
+        "impressions": 850273.0,
+        "spend": 42700.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_oct25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Oct25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 153.6,
+        "impressions": 875755.0,
+        "spend": 49000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 153.6,
+        "impressions": 875755.0,
+        "spend": 49000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mrq_sep25_hhl",
+    "advertiser": "mrq",
+    "category": "Betting & Gambling",
+    "year": 2025,
+    "display_name": "MRQ \u2022 Mrq Sep25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 77.5,
+        "impressions": 454880.0,
+        "spend": 32550.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 77.5,
+        "impressions": 454880.0,
+        "spend": 32550.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "lma_oct24_hhl",
+    "advertiser": "lma",
+    "category": "Business & Professional",
+    "year": 2024,
+    "display_name": "LMA \u2022 Lma Oct24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 62.44,
+        "impressions": 439913.0,
+        "spend": 20000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 62.44,
+        "impressions": 439913.0,
+        "spend": 20000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "alzheimers_society_may25_hhl",
+    "advertiser": "alzheimers_society",
+    "category": "Charity & Non-Profit",
+    "year": 2025,
+    "display_name": "ALZHEIMERS_SOCIETY \u2022 Alzheimers Society May25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 38.4,
+        "impressions": 654698.0,
+        "spend": 26290.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 38.4,
+        "impressions": 654698.0,
+        "spend": 26290.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "humanappeal_feb2026_hhl",
+    "advertiser": "humanappeal",
+    "category": "Charity & Non-Profit",
+    "year": 2026,
+    "display_name": "HUMANAPPEAL \u2022 Humanappeal Feb2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 228.5,
+        "impressions": 2389989.0,
+        "spend": 105675.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 228.5,
+        "impressions": 2389989.0,
+        "spend": 105675.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "rnli_aug2026_hhl",
+    "advertiser": "rnli",
+    "category": "Charity & Non-Profit",
+    "year": 2026,
+    "display_name": "RNLI \u2022 Rnli Aug2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 59.26,
+        "impressions": 316884.0,
+        "spend": 21574.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 59.26,
+        "impressions": 316884.0,
+        "spend": 21574.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "rnli_feb2026_hhl",
+    "advertiser": "rnli",
+    "category": "Charity & Non-Profit",
+    "year": 2026,
+    "display_name": "RNLI \u2022 Rnli Feb2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 120.98,
+        "impressions": 1626690.0,
+        "spend": 67528.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 120.98,
+        "impressions": 1626690.0,
+        "spend": 67528.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "royal_british_legion_oct24_hhl",
+    "advertiser": "royal_british_legion",
+    "category": "Charity & Non-Profit",
+    "year": 2024,
+    "display_name": "ROYAL_BRITISH_LEGION \u2022 Royal British Legion Oct24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 6.84,
+        "impressions": 737496.0,
+        "spend": 42940.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 6.84,
+        "impressions": 737496.0,
+        "spend": 42940.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "st_mungos_nov24_hhl",
+    "advertiser": "st_mungos",
+    "category": "Charity & Non-Profit",
+    "year": 2024,
+    "display_name": "ST_MUNGOS \u2022 St Mungos Nov24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 117.06,
+        "impressions": 170665.0,
+        "spend": 24980.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 117.06,
+        "impressions": 170665.0,
+        "spend": 24980.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "wwf_oct24_hhl",
+    "advertiser": "wwf",
+    "category": "Charity & Non-Profit",
+    "year": 2024,
+    "display_name": "WWF \u2022 Wwf Oct24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 45.0,
+        "impressions": 1527922.0,
+        "spend": 68030.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 45.0,
+        "impressions": 1527922.0,
+        "spend": 68030.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "barbour_nov25_hhl",
+    "advertiser": "barbour",
+    "category": "Fashion & Retail",
+    "year": 2025,
+    "display_name": "BARBOUR \u2022 Barbour Nov25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 78.26,
+        "impressions": 705954.0,
+        "spend": 40000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 78.26,
+        "impressions": 705954.0,
+        "spend": 40000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "bon_marche_apr24_hhl",
+    "advertiser": "bon_marche",
+    "category": "Fashion & Retail",
+    "year": 2024,
+    "display_name": "BON_MARCHE \u2022 Bon Marche Apr24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 32.59,
+        "impressions": 580609.0,
+        "spend": 23200.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 32.59,
+        "impressions": 580609.0,
+        "spend": 23200.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "bon_marche_nov24_hhl",
+    "advertiser": "bon_marche",
+    "category": "Fashion & Retail",
+    "year": 2024,
+    "display_name": "BON_MARCHE \u2022 Bon Marche Nov24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 80.46,
+        "impressions": 1571439.0,
+        "spend": 90390.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 80.46,
+        "impressions": 1571439.0,
+        "spend": 90390.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "clarks_mar2026_hhl",
+    "advertiser": "clarks",
+    "category": "Fashion & Retail",
+    "year": 2026,
+    "display_name": "CLARKS \u2022 Clarks Mar2026 (VOD + Linear)",
+    "has_vod": true,
+    "has_linear": true,
+    "is_multi_channel": true,
+    "badge_text": "VOD + Linear",
+    "channels": {
+      "combined": {
+        "label": "Overall (Combined VOD + Linear)",
+        "uplift": 20.16,
+        "impressions": 34249366.0,
+        "spend": 252073.0,
+        "is_combined": true
+      },
+      "vod": {
+        "label": "VOD Only",
+        "uplift": 22.08,
+        "impressions": 1058527.0,
+        "spend": 61800.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear Only",
+        "uplift": 20.1,
+        "impressions": 33190839.0,
+        "spend": 190273.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "frasers_mar2026_hhl",
+    "advertiser": "frasers",
+    "category": "Fashion & Retail",
+    "year": 2026,
+    "display_name": "FRASERS \u2022 Frasers Mar2026 (VOD + Linear)",
+    "has_vod": true,
+    "has_linear": true,
+    "is_multi_channel": true,
+    "badge_text": "VOD + Linear",
+    "channels": {
+      "combined": {
+        "label": "Overall (Combined VOD + Linear)",
+        "uplift": 2.07,
+        "impressions": 16877248.0,
+        "spend": 193183.0,
+        "is_combined": true
+      },
+      "vod": {
+        "label": "VOD Only",
+        "uplift": 1.75,
+        "impressions": 901318.0,
+        "spend": 42070.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear Only",
+        "uplift": 2.08,
+        "impressions": 15975930.0,
+        "spend": 151113.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "freemans_apr25_hhl",
+    "advertiser": "freemans",
+    "category": "Fashion & Retail",
+    "year": 2025,
+    "display_name": "FREEMANS \u2022 Freemans Apr25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 134.22,
+        "impressions": 6869329.0,
+        "spend": 329600.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 134.22,
+        "impressions": 6869329.0,
+        "spend": 329600.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "freemans_oct24_hhl",
+    "advertiser": "freemans",
+    "category": "Fashion & Retail",
+    "year": 2024,
+    "display_name": "FREEMANS \u2022 Freemans Oct24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 51.1,
+        "impressions": 3401139.0,
+        "spend": 302570.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 51.1,
+        "impressions": 3401139.0,
+        "spend": 302570.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "freemans_sep24_hhl",
+    "advertiser": "freemans",
+    "category": "Fashion & Retail",
+    "year": 2024,
+    "display_name": "FREEMANS \u2022 Freemans Sep24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 40.36,
+        "impressions": 5712351.0,
+        "spend": 310820.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 40.36,
+        "impressions": 5712351.0,
+        "spend": 310820.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "jacamo_apr2026_hhl",
+    "advertiser": "jacamo",
+    "category": "Fashion & Retail",
+    "year": 2026,
+    "display_name": "JACAMO \u2022 Jacamo Apr2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 111.38,
+        "impressions": 3091923.0,
+        "spend": 153602.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 111.38,
+        "impressions": 3091923.0,
+        "spend": 153602.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "jacamo_may25_hhl",
+    "advertiser": "jacamo",
+    "category": "Fashion & Retail",
+    "year": 2025,
+    "display_name": "JACAMO \u2022 Jacamo May25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 0.59,
+        "impressions": 4626024.0,
+        "spend": 199420.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 0.59,
+        "impressions": 4626024.0,
+        "spend": 199420.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "jd_williams_apr2026_hhl",
+    "advertiser": "jd_williams",
+    "category": "Fashion & Retail",
+    "year": 2026,
+    "display_name": "JD_WILLIAMS \u2022 Jd Williams Apr2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 47.96,
+        "impressions": 5261661.0,
+        "spend": 254689.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 47.96,
+        "impressions": 5261661.0,
+        "spend": 254689.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "jd_williams_apr25_hhl",
+    "advertiser": "jd_williams",
+    "category": "Fashion & Retail",
+    "year": 2025,
+    "display_name": "JD_WILLIAMS \u2022 Jd Williams Apr25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 47.5,
+        "impressions": 4287773.0,
+        "spend": 185120.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 47.5,
+        "impressions": 4287773.0,
+        "spend": 185120.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "jd_williams_sep25_hhl",
+    "advertiser": "jd_williams",
+    "category": "Fashion & Retail",
+    "year": 2025,
+    "display_name": "JD_WILLIAMS \u2022 Jd Williams Sep25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 54.7,
+        "impressions": 2014782.0,
+        "spend": 81500.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 54.7,
+        "impressions": 2014782.0,
+        "spend": 81500.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "moss_bros_jun25_hhl",
+    "advertiser": "moss_bros",
+    "category": "Fashion & Retail",
+    "year": 2025,
+    "display_name": "MOSS_BROS \u2022 Moss Bros Jun25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 74.18,
+        "impressions": 5183131.0,
+        "spend": 235000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 74.18,
+        "impressions": 5183131.0,
+        "spend": 235000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "moss_bros_may2026_hhl",
+    "advertiser": "moss_bros",
+    "category": "Fashion & Retail",
+    "year": 2026,
+    "display_name": "MOSS_BROS \u2022 Moss Bros May2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 112.74,
+        "impressions": 7371361.0,
+        "spend": 405000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 112.74,
+        "impressions": 7371361.0,
+        "spend": 405000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "peacocks_apr24_hhl",
+    "advertiser": "peacocks",
+    "category": "Fashion & Retail",
+    "year": 2024,
+    "display_name": "PEACOCKS \u2022 Peacocks Apr24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 53.83,
+        "impressions": 1030705.0,
+        "spend": 41370.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 53.83,
+        "impressions": 1030705.0,
+        "spend": 41370.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "peacocks_oct24_hhl",
+    "advertiser": "peacocks",
+    "category": "Fashion & Retail",
+    "year": 2024,
+    "display_name": "PEACOCKS \u2022 Peacocks Oct24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 57.32,
+        "impressions": 2626182.0,
+        "spend": 152930.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 57.32,
+        "impressions": 2626182.0,
+        "spend": 152930.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "spoke_apr24_hhl",
+    "advertiser": "spoke",
+    "category": "Fashion & Retail",
+    "year": 2024,
+    "display_name": "SPOKE \u2022 Spoke Apr24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 187.79,
+        "impressions": 1533375.0,
+        "spend": 62690.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 187.79,
+        "impressions": 1533375.0,
+        "spend": 62690.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "spoke_jul23_hhl",
+    "advertiser": "spoke",
+    "category": "Fashion & Retail",
+    "year": 2023,
+    "display_name": "SPOKE \u2022 Spoke Jul23 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 169.41,
+        "impressions": 1122867.0,
+        "spend": 47060.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 169.41,
+        "impressions": 1122867.0,
+        "spend": 47060.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "very_nov25_hhl",
+    "advertiser": "very",
+    "category": "Fashion & Retail",
+    "year": 2025,
+    "display_name": "VERY \u2022 Very Nov25 (VOD + Linear)",
+    "has_vod": true,
+    "has_linear": true,
+    "is_multi_channel": true,
+    "badge_text": "VOD + Linear",
+    "channels": {
+      "combined": {
+        "label": "Overall (Combined VOD + Linear)",
+        "uplift": 6.14,
+        "impressions": 30156846.0,
+        "spend": 717559.0,
+        "is_combined": true
+      },
+      "vod": {
+        "label": "VOD Only",
+        "uplift": 5.39,
+        "impressions": 1822694.0,
+        "spend": 88147.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear Only",
+        "uplift": 6.18,
+        "impressions": 28334152.0,
+        "spend": 629412.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "white_stuff_nov23_hhl",
+    "advertiser": "white_stuff",
+    "category": "Fashion & Retail",
+    "year": 2023,
+    "display_name": "WHITE_STUFF \u2022 White Stuff Nov23 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 193.8,
+        "impressions": 1665783.0,
+        "spend": 82000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 193.8,
+        "impressions": 1665783.0,
+        "spend": 82000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "white_stuff_nov25_hhl",
+    "advertiser": "white_stuff",
+    "category": "Fashion & Retail",
+    "year": 2025,
+    "display_name": "WHITE_STUFF \u2022 White Stuff Nov25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 18.62,
+        "impressions": 3951890.0,
+        "spend": 247647.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 18.62,
+        "impressions": 3951890.0,
+        "spend": 247647.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "cel_solicitors_may25_hhl",
+    "advertiser": "cel_solicitors",
+    "category": "Finance",
+    "year": 2025,
+    "display_name": "CEL_SOLICITORS \u2022 Cel Solicitors May25 (Linear Only)",
+    "has_vod": false,
+    "has_linear": true,
+    "is_multi_channel": false,
+    "badge_text": "Linear Only",
+    "channels": {
+      "combined": {
+        "label": "Linear (Sole Platform)",
+        "uplift": 5926.26,
+        "impressions": 22762204.0,
+        "spend": 90942.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear (Sole Platform)",
+        "uplift": 5926.26,
+        "impressions": 22762204.0,
+        "spend": 90942.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "etoro_apr24_hhl",
+    "advertiser": "etoro",
+    "category": "Finance",
+    "year": 2024,
+    "display_name": "ETORO \u2022 Etoro Apr24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 11.05,
+        "impressions": 252231.0,
+        "spend": 9880.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 11.05,
+        "impressions": 252231.0,
+        "spend": 9880.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "etoro_aug24_hhl",
+    "advertiser": "etoro",
+    "category": "Finance",
+    "year": 2024,
+    "display_name": "ETORO \u2022 Etoro Aug24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 14.66,
+        "impressions": 315901.0,
+        "spend": 12350.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 14.66,
+        "impressions": 315901.0,
+        "spend": 12350.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "etoro_feb25_hhl",
+    "advertiser": "etoro",
+    "category": "Finance",
+    "year": 2025,
+    "display_name": "ETORO \u2022 Etoro Feb25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 58.42,
+        "impressions": 794474.0,
+        "spend": 49990.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 58.42,
+        "impressions": 794474.0,
+        "spend": 49990.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "etoro_jan25_hhl",
+    "advertiser": "etoro",
+    "category": "Finance",
+    "year": 2025,
+    "display_name": "ETORO \u2022 Etoro Jan25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 18.29,
+        "impressions": 908622.0,
+        "spend": 50000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 18.29,
+        "impressions": 908622.0,
+        "spend": 50000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "etoro_jun24_hhl",
+    "advertiser": "etoro",
+    "category": "Finance",
+    "year": 2024,
+    "display_name": "ETORO \u2022 Etoro Jun24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 255.69,
+        "impressions": 844700.0,
+        "spend": 50000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 255.69,
+        "impressions": 844700.0,
+        "spend": 50000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "ht_pawnbrokers_may2026_hhl",
+    "advertiser": "ht_pawnbrokers",
+    "category": "Finance",
+    "year": 2026,
+    "display_name": "HT_PAWNBROKERS \u2022 Ht Pawnbrokers May2026 (VOD + Linear)",
+    "has_vod": true,
+    "has_linear": true,
+    "is_multi_channel": true,
+    "badge_text": "VOD + Linear",
+    "channels": {
+      "combined": {
+        "label": "Overall (Combined VOD + Linear)",
+        "uplift": 71.49,
+        "impressions": 20384395.0,
+        "spend": 441435.0,
+        "is_combined": true
+      },
+      "vod": {
+        "label": "VOD Only",
+        "uplift": 74.68,
+        "impressions": 1567671.0,
+        "spend": 64000.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear Only",
+        "uplift": 71.22,
+        "impressions": 18816724.0,
+        "spend": 377435.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "key_group_sep24_hhl",
+    "advertiser": "key_group",
+    "category": "Finance",
+    "year": 2024,
+    "display_name": "KEY_GROUP \u2022 Key Group Sep24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 51.09,
+        "impressions": 2301442.0,
+        "spend": 135340.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 51.09,
+        "impressions": 2301442.0,
+        "spend": 135340.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "waggel_jul25_hhl",
+    "advertiser": "waggel",
+    "category": "Finance",
+    "year": 2025,
+    "display_name": "WAGGEL \u2022 Waggel Jul25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 0.26,
+        "impressions": 2906573.0,
+        "spend": 150000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 0.26,
+        "impressions": 2906573.0,
+        "spend": 150000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "lindt_nov25_hhl",
+    "advertiser": "lindt",
+    "category": "Food & Drink",
+    "year": 2025,
+    "display_name": "LINDT \u2022 Lindt Nov25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 0.0,
+        "impressions": 3584684.0,
+        "spend": 100853.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 0.0,
+        "impressions": 3584684.0,
+        "spend": 100853.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "benenden_health_jan2026_hhl",
+    "advertiser": "benenden_health",
+    "category": "Health & Beauty",
+    "year": 2026,
+    "display_name": "BENENDEN_HEALTH \u2022 Benenden Health Jan2026 (VOD + Linear)",
+    "has_vod": true,
+    "has_linear": true,
+    "is_multi_channel": true,
+    "badge_text": "VOD + Linear",
+    "channels": {
+      "combined": {
+        "label": "Overall (Combined VOD + Linear)",
+        "uplift": 33.04,
+        "impressions": 141942138.0,
+        "spend": 2494920.0,
+        "is_combined": true
+      },
+      "vod": {
+        "label": "VOD Only",
+        "uplift": 34.05,
+        "impressions": 11426974.0,
+        "spend": 730292.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear Only",
+        "uplift": 32.96,
+        "impressions": 130515164.0,
+        "spend": 1764628.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "benenden_health_sep25_hhl",
+    "advertiser": "benenden_health",
+    "category": "Health & Beauty",
+    "year": 2025,
+    "display_name": "BENENDEN_HEALTH \u2022 Benenden Health Sep25 (VOD + Linear)",
+    "has_vod": true,
+    "has_linear": true,
+    "is_multi_channel": true,
+    "badge_text": "VOD + Linear",
+    "channels": {
+      "combined": {
+        "label": "Overall (Combined VOD + Linear)",
+        "uplift": 17.44,
+        "impressions": 202599001.0,
+        "spend": 3462888.0,
+        "is_combined": true
+      },
+      "vod": {
+        "label": "VOD Only",
+        "uplift": 16.61,
+        "impressions": 11691151.0,
+        "spend": 688578.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear Only",
+        "uplift": 17.49,
+        "impressions": 190907850.0,
+        "spend": 2774310.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "childs_farm_feb24_hhl",
+    "advertiser": "childs_farm",
+    "category": "Health & Beauty",
+    "year": 2024,
+    "display_name": "CHILDS_FARM \u2022 Childs Farm Feb24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 75.89,
+        "impressions": 1990001.0,
+        "spend": 52940.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 75.89,
+        "impressions": 1990001.0,
+        "spend": 52940.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "hidden_hearing_sep25_hhl",
+    "advertiser": "hidden_hearing",
+    "category": "Health & Beauty",
+    "year": 2025,
+    "display_name": "HIDDEN_HEARING \u2022 Hidden Hearing Sep25 (Linear Only)",
+    "has_vod": false,
+    "has_linear": true,
+    "is_multi_channel": false,
+    "badge_text": "Linear Only",
+    "channels": {
+      "combined": {
+        "label": "Linear (Sole Platform)",
+        "uplift": 127.35,
+        "impressions": 164731281.0,
+        "spend": 576602.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear (Sole Platform)",
+        "uplift": 127.35,
+        "impressions": 164731281.0,
+        "spend": 576602.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "emma_oct24_hhl",
+    "advertiser": "emma",
+    "category": "Home & Garden",
+    "year": 2024,
+    "display_name": "EMMA \u2022 Emma Oct24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 37.6,
+        "impressions": 672355.0,
+        "spend": 33530.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 37.6,
+        "impressions": 672355.0,
+        "spend": 33530.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "harvey_mar25_hhl",
+    "advertiser": "harvey",
+    "category": "Home & Garden",
+    "year": 2025,
+    "display_name": "HARVEY \u2022 Harvey Mar25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 11.89,
+        "impressions": 819720.0,
+        "spend": 35290.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 11.89,
+        "impressions": 819720.0,
+        "spend": 35290.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "magnet_jan26_hhl",
+    "advertiser": "magnet",
+    "category": "Home & Garden",
+    "year": 2026,
+    "display_name": "MAGNET \u2022 Magnet Jan26 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 399.35,
+        "impressions": 1151708.0,
+        "spend": 50000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 399.35,
+        "impressions": 1151708.0,
+        "spend": 50000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "the_cotswold_company_aug25_hhl",
+    "advertiser": "the_cotswold_company",
+    "category": "Home & Garden",
+    "year": 2025,
+    "display_name": "THE_COTSWOLD_COMPANY \u2022 The Cotswold Company Aug25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 82.67,
+        "impressions": 560791.0,
+        "spend": 24290.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 82.67,
+        "impressions": 560791.0,
+        "spend": 24290.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "the_cotswold_company_jul25_hhl",
+    "advertiser": "the_cotswold_company",
+    "category": "Home & Garden",
+    "year": 2025,
+    "display_name": "THE_COTSWOLD_COMPANY \u2022 The Cotswold Company Jul25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 110.28,
+        "impressions": 658827.0,
+        "spend": 27800.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 110.28,
+        "impressions": 658827.0,
+        "spend": 27800.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "the_cotswold_company_jun25_hhl",
+    "advertiser": "the_cotswold_company",
+    "category": "Home & Garden",
+    "year": 2025,
+    "display_name": "THE_COTSWOLD_COMPANY \u2022 The Cotswold Company Jun25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 17.28,
+        "impressions": 966513.0,
+        "spend": 33270.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 17.28,
+        "impressions": 966513.0,
+        "spend": 33270.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "compass_sep25_hhl",
+    "advertiser": "compass",
+    "category": "Other",
+    "year": 2025,
+    "display_name": "COMPASS \u2022 Compass Sep25 (Linear Only)",
+    "has_vod": false,
+    "has_linear": true,
+    "is_multi_channel": false,
+    "badge_text": "Linear Only",
+    "channels": {
+      "combined": {
+        "label": "Linear (Sole Platform)",
+        "uplift": 421.62,
+        "impressions": 125131856.0,
+        "spend": 313226.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear (Sole Platform)",
+        "uplift": 421.62,
+        "impressions": 125131856.0,
+        "spend": 313226.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "myq_apr25_hhl",
+    "advertiser": "myq",
+    "category": "Other",
+    "year": 2025,
+    "display_name": "MYQ \u2022 Myq Apr25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 21.95,
+        "impressions": 623328.0,
+        "spend": 26310.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 21.95,
+        "impressions": 623328.0,
+        "spend": 26310.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "ppl_aug2026_hhl",
+    "advertiser": "ppl",
+    "category": "Other",
+    "year": 2026,
+    "display_name": "PPL \u2022 Ppl Aug2026 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 126.66,
+        "impressions": 2958906.0,
+        "spend": 100808.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 126.66,
+        "impressions": 2958906.0,
+        "spend": 100808.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "ppl_jul25_hhl",
+    "advertiser": "ppl",
+    "category": "Other",
+    "year": 2025,
+    "display_name": "PPL \u2022 Ppl Jul25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 79.52,
+        "impressions": 2582534.0,
+        "spend": 103820.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 79.52,
+        "impressions": 2582534.0,
+        "spend": 103820.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "slimming_world_dec25_hhl",
+    "advertiser": "slimming_world",
+    "category": "Other",
+    "year": 2025,
+    "display_name": "SLIMMING_WORLD \u2022 Slimming World Dec25 (VOD + Linear)",
+    "has_vod": true,
+    "has_linear": true,
+    "is_multi_channel": true,
+    "badge_text": "VOD + Linear",
+    "channels": {
+      "combined": {
+        "label": "Overall (Combined VOD + Linear)",
+        "uplift": 63.49,
+        "impressions": 36322976.0,
+        "spend": 551831.0,
+        "is_combined": true
+      },
+      "vod": {
+        "label": "VOD Only",
+        "uplift": 62.01,
+        "impressions": 2453950.0,
+        "spend": 136408.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear Only",
+        "uplift": 63.59,
+        "impressions": 33869026.0,
+        "spend": 415423.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "butternut_box_feb25_hhl",
+    "advertiser": "butternut_box",
+    "category": "Pets",
+    "year": 2025,
+    "display_name": "BUTTERNUT_BOX \u2022 Butternut Box Feb25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 57.74,
+        "impressions": 1975081.0,
+        "spend": 82350.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 57.74,
+        "impressions": 1975081.0,
+        "spend": 82350.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "butternut_box_jul24_hhl",
+    "advertiser": "butternut_box",
+    "category": "Pets",
+    "year": 2024,
+    "display_name": "BUTTERNUT_BOX \u2022 Butternut Box Jul24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 95.89,
+        "impressions": 2481413.0,
+        "spend": 93380.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 95.89,
+        "impressions": 2481413.0,
+        "spend": 93380.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "butternut_box_may24_hhl",
+    "advertiser": "butternut_box",
+    "category": "Pets",
+    "year": 2024,
+    "display_name": "BUTTERNUT_BOX \u2022 Butternut Box May24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 50.39,
+        "impressions": 1150037.0,
+        "spend": 42530.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 50.39,
+        "impressions": 1150037.0,
+        "spend": 42530.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "bose_sep24_hhl",
+    "advertiser": "bose",
+    "category": "Technology",
+    "year": 2024,
+    "display_name": "BOSE \u2022 Bose Sep24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 0.0,
+        "impressions": 7298304.0,
+        "spend": 300000.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 0.0,
+        "impressions": 7298304.0,
+        "spend": 300000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "freely_oct24_hhl",
+    "advertiser": "freely",
+    "category": "Telecoms & Media",
+    "year": 2024,
+    "display_name": "FREELY \u2022 Freely Oct24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 74.99,
+        "impressions": 23227903.0,
+        "spend": 1299630.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 74.99,
+        "impressions": 23227903.0,
+        "spend": 1299630.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "fred_olsen_aug25_hhl",
+    "advertiser": "fred_olsen",
+    "category": "Travel & Leisure",
+    "year": 2025,
+    "display_name": "FRED_OLSEN \u2022 Fred Olsen Aug25 (Linear Only)",
+    "has_vod": false,
+    "has_linear": true,
+    "is_multi_channel": false,
+    "badge_text": "Linear Only",
+    "channels": {
+      "combined": {
+        "label": "Linear (Sole Platform)",
+        "uplift": 73.14,
+        "impressions": 64761244.0,
+        "spend": 372374.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear (Sole Platform)",
+        "uplift": 73.14,
+        "impressions": 64761244.0,
+        "spend": 372374.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "hays_dec23_hhl",
+    "advertiser": "hays",
+    "category": "Travel & Leisure",
+    "year": 2023,
+    "display_name": "HAYS \u2022 Hays Dec23 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 43.15,
+        "impressions": 5012965.0,
+        "spend": 233630.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 43.15,
+        "impressions": 5012965.0,
+        "spend": 233630.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "hays_dec24_hhl",
+    "advertiser": "hays",
+    "category": "Travel & Leisure",
+    "year": 2024,
+    "display_name": "HAYS \u2022 Hays Dec24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 30.77,
+        "impressions": 6542768.0,
+        "spend": 316675.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 30.77,
+        "impressions": 6542768.0,
+        "spend": 316675.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "isleofmansteampacket_may2026_hhl",
+    "advertiser": "isleofmansteampacket",
+    "category": "Travel & Leisure",
+    "year": 2026,
+    "display_name": "ISLEOFMANSTEAMPACKET \u2022 Isleofmansteampacket May2026 (VOD + Linear)",
+    "has_vod": true,
+    "has_linear": true,
+    "is_multi_channel": true,
+    "badge_text": "VOD + Linear",
+    "channels": {
+      "combined": {
+        "label": "Overall (Combined VOD + Linear)",
+        "uplift": 49.28,
+        "impressions": 30510923.0,
+        "spend": 520476.0,
+        "is_combined": true
+      },
+      "vod": {
+        "label": "VOD Only",
+        "uplift": 46.4,
+        "impressions": 2418830.0,
+        "spend": 150476.0,
+        "is_combined": false
+      },
+      "linear": {
+        "label": "Linear Only",
+        "uplift": 49.52,
+        "impressions": 28092093.0,
+        "spend": 370000.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "love_holidays_dec25_hhl",
+    "advertiser": "love_holidays",
+    "category": "Travel & Leisure",
+    "year": 2025,
+    "display_name": "LOVE_HOLIDAYS \u2022 Love Holidays Dec25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 88.01,
+        "impressions": 3123780.0,
+        "spend": 162830.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 88.01,
+        "impressions": 3123780.0,
+        "spend": 162830.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "mark_warner_jan26_hhl",
+    "advertiser": "mark_warner",
+    "category": "Travel & Leisure",
+    "year": 2026,
+    "display_name": "MARK_WARNER \u2022 Mark Warner Jan26 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 45.09,
+        "impressions": 559652.0,
+        "spend": 30830.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 45.09,
+        "impressions": 559652.0,
+        "spend": 30830.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "parkdean_resorts_dec24_hhl",
+    "advertiser": "parkdean_resorts",
+    "category": "Travel & Leisure",
+    "year": 2024,
+    "display_name": "PARKDEAN_RESORTS \u2022 Parkdean Resorts Dec24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 24.02,
+        "impressions": 4123681.0,
+        "spend": 194240.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 24.02,
+        "impressions": 4123681.0,
+        "spend": 194240.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "riviera_travel_feb25_hhl",
+    "advertiser": "riviera_travel",
+    "category": "Travel & Leisure",
+    "year": 2025,
+    "display_name": "RIVIERA_TRAVEL \u2022 Riviera Travel Feb25 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 32.7,
+        "impressions": 740463.0,
+        "spend": 35240.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 32.7,
+        "impressions": 740463.0,
+        "spend": 35240.0,
+        "is_combined": false
+      }
+    }
+  },
+  {
+    "base_id": "sykes_cottages_dec24_hhl",
+    "advertiser": "sykes_cottages",
+    "category": "Travel & Leisure",
+    "year": 2024,
+    "display_name": "SYKES_COTTAGES \u2022 Sykes Cottages Dec24 (VOD Only)",
+    "has_vod": true,
+    "has_linear": false,
+    "is_multi_channel": false,
+    "badge_text": "VOD Only",
+    "channels": {
+      "combined": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 35.65,
+        "impressions": 496907.0,
+        "spend": 38240.0,
+        "is_combined": false
+      },
+      "vod": {
+        "label": "VOD (Sole Platform)",
+        "uplift": 35.65,
+        "impressions": 496907.0,
+        "spend": 38240.0,
+        "is_combined": false
+      }
+    }
+  }
+];
+        const benchmarksData = [
+  {
+    "category": "Fashion & Retail",
+    "valid_campaigns": 25,
+    "low_p25_pct": 20.1,
+    "typical_median_pct": 51.1,
+    "strong_p75_pct": 80.5,
+    "min_pct": 0.6,
+    "max_pct": 193.8,
+    "unique_advertisers": 12,
+    "total_impressions_m": 143.89,
+    "total_spend_gbp": 4407423.0,
+    "reliability": "Robust (n \u2265 10)",
+    "badge_class": "badge-robust"
+  },
+  {
+    "category": "Betting & Gambling",
+    "valid_campaigns": 17,
+    "low_p25_pct": 49.4,
+    "typical_median_pct": 77.5,
+    "strong_p75_pct": 147.1,
+    "min_pct": 1.9,
+    "max_pct": 216.4,
+    "unique_advertisers": 2,
+    "total_impressions_m": 31.94,
+    "total_spend_gbp": 1091409.0,
+    "reliability": "Robust (n \u2265 10)",
+    "badge_class": "badge-robust"
+  },
+  {
+    "category": "Finance",
+    "valid_campaigns": 10,
+    "low_p25_pct": 15.6,
+    "typical_median_pct": 54.8,
+    "strong_p75_pct": 73.8,
+    "min_pct": 0.3,
+    "max_pct": 5926.3,
+    "unique_advertisers": 5,
+    "total_impressions_m": 51.47,
+    "total_spend_gbp": 989937.0,
+    "reliability": "Robust (n \u2265 10)",
+    "badge_class": "badge-robust"
+  },
+  {
+    "category": "Travel & Leisure",
+    "valid_campaigns": 10,
+    "low_p25_pct": 33.4,
+    "typical_median_pct": 44.1,
+    "strong_p75_pct": 48.7,
+    "min_pct": 24.0,
+    "max_pct": 88.0,
+    "unique_advertisers": 8,
+    "total_impressions_m": 115.87,
+    "total_spend_gbp": 1904535.0,
+    "reliability": "Robust (n \u2265 10)",
+    "badge_class": "badge-robust"
+  },
+  {
+    "category": "Charity & Non-Profit",
+    "valid_campaigns": 7,
+    "low_p25_pct": 41.7,
+    "typical_median_pct": 59.3,
+    "strong_p75_pct": 119.0,
+    "min_pct": 6.8,
+    "max_pct": 228.5,
+    "unique_advertisers": 6,
+    "total_impressions_m": 7.42,
+    "total_spend_gbp": 357017.0,
+    "reliability": "Medium (n \u2265 5)",
+    "badge_class": "badge-medium"
+  },
+  {
+    "category": "Other",
+    "valid_campaigns": 6,
+    "low_p25_pct": 62.4,
+    "typical_median_pct": 71.6,
+    "strong_p75_pct": 114.9,
+    "min_pct": 22.0,
+    "max_pct": 421.6,
+    "unique_advertisers": 4,
+    "total_impressions_m": 167.62,
+    "total_spend_gbp": 1095995.0,
+    "reliability": "Medium (n \u2265 5)",
+    "badge_class": "badge-medium"
+  },
+  {
+    "category": "Home & Garden",
+    "valid_campaigns": 6,
+    "low_p25_pct": 22.4,
+    "typical_median_pct": 60.1,
+    "strong_p75_pct": 103.4,
+    "min_pct": 11.9,
+    "max_pct": 399.3,
+    "unique_advertisers": 4,
+    "total_impressions_m": 4.83,
+    "total_spend_gbp": 204180.0,
+    "reliability": "Medium (n \u2265 5)",
+    "badge_class": "badge-medium"
+  },
+  {
+    "category": "Health & Beauty",
+    "valid_campaigns": 6,
+    "low_p25_pct": 21.4,
+    "typical_median_pct": 33.5,
+    "strong_p75_pct": 65.4,
+    "min_pct": 16.6,
+    "max_pct": 127.3,
+    "unique_advertisers": 3,
+    "total_impressions_m": 511.26,
+    "total_spend_gbp": 6587350.0,
+    "reliability": "Medium (n \u2265 5)",
+    "badge_class": "badge-medium"
+  },
+  {
+    "category": "Pets",
+    "valid_campaigns": 3,
+    "low_p25_pct": 54.1,
+    "typical_median_pct": 57.7,
+    "strong_p75_pct": 76.8,
+    "min_pct": 50.4,
+    "max_pct": 95.9,
+    "unique_advertisers": 1,
+    "total_impressions_m": 5.61,
+    "total_spend_gbp": 218260.0,
+    "reliability": "Directional (n < 5)",
+    "badge_class": "badge-directional"
+  },
+  {
+    "category": "Automotive",
+    "valid_campaigns": 2,
+    "low_p25_pct": 33.8,
+    "typical_median_pct": 44.5,
+    "strong_p75_pct": 55.2,
+    "min_pct": 23.1,
+    "max_pct": 65.9,
+    "unique_advertisers": 1,
+    "total_impressions_m": 0.83,
+    "total_spend_gbp": 40511.0,
+    "reliability": "Directional (n < 5)",
+    "badge_class": "badge-directional"
+  },
+  {
+    "category": "Telecoms & Media",
+    "valid_campaigns": 1,
+    "low_p25_pct": 75.0,
+    "typical_median_pct": 75.0,
+    "strong_p75_pct": 75.0,
+    "min_pct": 75.0,
+    "max_pct": 75.0,
+    "unique_advertisers": 1,
+    "total_impressions_m": 23.23,
+    "total_spend_gbp": 1299630.0,
+    "reliability": "Single Study (n = 1)",
+    "badge_class": "badge-single"
+  },
+  {
+    "category": "Business & Professional",
+    "valid_campaigns": 1,
+    "low_p25_pct": 62.4,
+    "typical_median_pct": 62.4,
+    "strong_p75_pct": 62.4,
+    "min_pct": 62.4,
+    "max_pct": 62.4,
+    "unique_advertisers": 1,
+    "total_impressions_m": 0.44,
+    "total_spend_gbp": 20000.0,
+    "reliability": "Single Study (n = 1)",
+    "badge_class": "badge-single"
+  },
+  {
+    "category": "Food & Drink",
+    "valid_campaigns": 1,
+    "low_p25_pct": 0.0,
+    "typical_median_pct": 0.0,
+    "strong_p75_pct": 0.0,
+    "min_pct": 0.0,
+    "max_pct": 0.0,
+    "unique_advertisers": 1,
+    "total_impressions_m": 3.58,
+    "total_spend_gbp": 100853.0,
+    "reliability": "Single Study (n = 1)",
+    "badge_class": "badge-single"
+  },
+  {
+    "category": "Technology",
+    "valid_campaigns": 1,
+    "low_p25_pct": 0.0,
+    "typical_median_pct": 0.0,
+    "strong_p75_pct": 0.0,
+    "min_pct": 0.0,
+    "max_pct": 0.0,
+    "unique_advertisers": 1,
+    "total_impressions_m": 7.3,
+    "total_spend_gbp": 300000.0,
+    "reliability": "Single Study (n = 1)",
+    "badge_class": "badge-single"
+  }
+];
+        let currentChannelMode = 'combined';
+
+        function init() {
+            const categories = [...new Set(allCampaigns.map(c => c.category))].sort();
+            const catSelect = document.getElementById('categorySelect');
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                catSelect.appendChild(opt);
+            });
+
+            onCategoryChange();
+            renderTable(benchmarksData);
+            drawOverviewChart();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            const btns = document.querySelectorAll('.tab-btn');
+            if (tabId === 'tab-campaign') btns[0].classList.add('active');
+            else if (tabId === 'tab-benchmarks') btns[1].classList.add('active');
+            else if (tabId === 'tab-overview') {
+                btns[2].classList.add('active');
+                drawOverviewChart();
+            }
+        }
+
+        function onCategoryChange() {
+            const selectedCat = document.getElementById('categorySelect').value;
+            const campSelect = document.getElementById('campaignSelect');
+            campSelect.innerHTML = '';
+
+            const filtered = selectedCat === 'ALL' 
+                ? allCampaigns 
+                : allCampaigns.filter(c => c.category === selectedCat);
+
+            filtered.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.base_id;
+                opt.textContent = c.display_name;
+                campSelect.appendChild(opt);
+            });
+
+            if (filtered.length > 0) {
+                campSelect.selectedIndex = 0;
+                onCampaignChange();
+            }
+        }
+
+        function onCampaignChange() {
+            const campId = document.getElementById('campaignSelect').value;
+            const camp = allCampaigns.find(c => c.base_id === campId);
+            if (!camp) return;
+
+            const btnComb = document.getElementById('btnChanCombined');
+            const btnLin = document.getElementById('btnChanLinear');
+            const btnVod = document.getElementById('btnChanVod');
+
+            if (camp.is_multi_channel) {
+                btnComb.disabled = false;
+                btnLin.disabled = false;
+                btnVod.disabled = false;
+                btnComb.textContent = "Overall (Combined)";
+                btnLin.textContent = "Linear";
+                btnVod.textContent = "VOD";
+                currentChannelMode = 'combined';
+            } else if (camp.has_vod) {
+                btnComb.disabled = false;
+                btnLin.disabled = true;
+                btnVod.disabled = false;
+                btnComb.textContent = "Overall (VOD)";
+                btnLin.textContent = "Linear (N/A)";
+                btnVod.textContent = "VOD";
+                currentChannelMode = 'vod';
+            } else {
+                btnComb.disabled = false;
+                btnLin.disabled = false;
+                btnVod.disabled = true;
+                btnComb.textContent = "Overall (Linear)";
+                btnLin.textContent = "Linear";
+                btnVod.textContent = "VOD (N/A)";
+                currentChannelMode = 'linear';
+            }
+
+            updateChannelButtons();
+            updateView();
+        }
+
+        function setChannel(mode) {
+            currentChannelMode = mode;
+            updateChannelButtons();
+            updateView();
+        }
+
+        function updateChannelButtons() {
+            document.getElementById('btnChanCombined').classList.toggle('active', currentChannelMode === 'combined');
+            document.getElementById('btnChanLinear').classList.toggle('active', currentChannelMode === 'linear');
+            document.getElementById('btnChanVod').classList.toggle('active', currentChannelMode === 'vod');
+        }
+
+        function updateView() {
+            const campId = document.getElementById('campaignSelect').value;
+            if (!campId) return;
+
+            const camp = allCampaigns.find(c => c.base_id === campId);
+            if (!camp) return;
+
+            let channelData = camp.channels[currentChannelMode] || camp.channels['combined'] || Object.values(camp.channels)[0];
+
+            // Outlier scale toggle - ONLY visible when viewing Finance category
+            const toggleContainer = document.getElementById('scaleCapContainer');
+            if (toggleContainer) {
+                if (camp.category === 'Finance') {
+                    toggleContainer.style.display = 'flex';
+                } else {
+                    toggleContainer.style.display = 'none';
+                    const chk = document.getElementById('chkScaleCap');
+                    if (chk) chk.checked = true;
+                }
+            }
+
+            const capScale = (camp.category === 'Finance' && document.getElementById('chkScaleCap')) 
+                ? document.getElementById('chkScaleCap').checked 
+                : true;
+
+            // Render on Client-Side HTML5 Canvas
+            drawPcaChart(camp, currentChannelMode, capScale);
+
+            // Determine active category benchmark metrics
+            const catBench = benchmarksData.find(b => b.category === camp.category);
+            const p25 = catBench ? catBench.low_p25_pct : 20.0;
+            const p50 = catBench ? catBench.typical_median_pct : 50.0;
+            const p75 = catBench ? catBench.strong_p75_pct : 80.0;
+            const sampleText = `Benchmark based on n=${catBench ? catBench.valid_campaigns : 0} studies`;
+            const tierSubText = `Relative to Category (${camp.category})`;
+
+            const campUplift = channelData.uplift;
+            let tier = 'Typical';
+            let tierClass = 'typical';
+            let tierColor = '#2F86F2';
+            if (campUplift < p25) {
+                tier = 'Low';
+                tierClass = 'low';
+                tierColor = '#C966CC';
+            } else if (campUplift > p75) {
+                tier = 'Strong';
+                tierClass = 'strong';
+                tierColor = '#04A674';
+            }
+
+            const tierCard = document.getElementById('tierCard');
+            tierCard.className = `kpi-card ${tierClass}`;
+            document.getElementById('tierVal').textContent = tier;
+            document.getElementById('tierVal').style.color = tierColor;
+            document.getElementById('tierSub').textContent = tierSubText;
+
+            document.getElementById('upliftVal').textContent = `+${campUplift.toFixed(1)}%`;
+            document.getElementById('advertiserVal').textContent = `${camp.advertiser.toUpperCase()} • ${channelData.label}`;
+
+            if (camp.is_multi_channel) {
+                const linUp = camp.channels['linear'].uplift.toFixed(1);
+                const vodUp = camp.channels['vod'].uplift.toFixed(1);
+                document.getElementById('breakdownVal').innerHTML = `<span style="color:var(--itv-purple);">Linear: +${linUp}%</span> &bull; <span style="color:var(--itv-teal);">VOD: +${vodUp}%</span>`;
+                document.getElementById('breakdownSub').textContent = `Dual-Platform Campaign`;
+            } else {
+                document.getElementById('breakdownVal').textContent = camp.badge_text;
+                document.getElementById('breakdownSub').textContent = `Single-Platform Delivery`;
+            }
+
+            document.getElementById('medianVal').textContent = `+${p50.toFixed(1)}%`;
+            document.getElementById('catCountVal').textContent = sampleText;
+
+            // Informative Outlier & Category Notice
+            const noticeEl = document.getElementById('outlierNotice');
+            if (noticeEl) {
+                if (camp.category === 'Finance' && camp.base_id.includes('cel_solicitors')) {
+                    noticeEl.style.display = 'block';
+                    noticeEl.innerHTML = `<strong>💡 Extreme Outlier Handled:</strong> <strong>CEL Solicitors (+5,926.3% uplift)</strong> is an extreme mathematical anomaly caused by an ultra-low control base rate (0.000198%). To keep the Low and Typical performance bands readable across the category, the visual axis is capped at the category benchmark limit with an off-scale marker (▶). Uncheck <em>"Cap extreme outliers"</em> above if you wish to inspect the uncapped 6,000% scale.`;
+                } else if (camp.category === 'Finance') {
+                    noticeEl.style.display = 'block';
+                    noticeEl.innerHTML = `<strong>💡 Finance Category Readability:</strong> With CEL Solicitors (+5,926.3%) capped at the upper boundary, the visual x-axis focuses on the genuine commercial performance range (0% to ~150%), showing exactly where <strong>${camp.advertiser.toUpperCase()} (+${campUplift.toFixed(1)}%)</strong> sits relative to the reliable category Median (+${p50.toFixed(1)}%).`;
+                } else if (campUplift > 300) {
+                    noticeEl.style.display = 'block';
+                    noticeEl.innerHTML = `<strong>💡 Scale Notice:</strong> <strong>${camp.advertiser.toUpperCase()} (+${campUplift.toFixed(1)}%)</strong> achieved an exceptionally high uplift. The category scale is optimized to keep Low and Typical tiers readable.`;
+                } else {
+                    noticeEl.style.display = 'none';
+                }
+            }
+        }
+
+        // ==============================================================================
+        // CLIENT-SIDE 2D CANVAS DRAWING (EXACT ITV VISUAL SPECIFICATION)
+        // ==============================================================================
+        function drawPcaChart(camp, channelMode, capScale) {
+            const canvas = document.getElementById('pcaCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            const W = 2200;
+            const H = 960;
+            canvas.width = W;
+            canvas.height = H;
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, W, H);
+            
+            let channelData = camp.channels[channelMode] || camp.channels['combined'] || Object.values(camp.channels)[0];
+            const campaignUplift = channelData.uplift;
+            
+            const catBench = benchmarksData.find(b => b.category === camp.category);
+            const p25 = catBench ? catBench.low_p25_pct : 20.0;
+            const p50 = catBench ? catBench.typical_median_pct : 50.0;
+            const p75 = catBench ? catBench.strong_p75_pct : 80.0;
+            const nCampaigns = catBench ? catBench.valid_campaigns : 0;
+            const reliability = catBench ? catBench.reliability : 'Robust';
+            
+            const iqr = Math.max(p75 - p25, p50 * 0.4, 20.0);
+            const catScaleMax = Math.max(p75 * 1.5, p75 + 1.25 * iqr, 50.0);
+            const outlierThreshold = Math.max(p75 * 3.5, 300.0);
+            const isExtremeOutlier = (campaignUplift > outlierThreshold);
+            
+            let xMax, markerX;
+            if (!capScale) {
+                xMax = Math.max(catScaleMax, campaignUplift * 1.12);
+                markerX = campaignUplift;
+            } else {
+                if (isExtremeOutlier) {
+                    xMax = catScaleMax * 1.18;
+                    markerX = xMax * 0.94;
+                } else {
+                    xMax = Math.max(catScaleMax, campaignUplift * 1.18);
+                    markerX = campaignUplift;
+                }
+            }
+            
+            let tier = 'Typical';
+            let tierColor = '#2F86F2';
+            if (campaignUplift < p25) {
+                tier = 'Low';
+                tierColor = '#C966CC';
+            } else if (campaignUplift > p75) {
+                tier = 'Strong';
+                tierColor = '#04A674';
+            }
+            
+            const marginLeft = 140;
+            const marginRight = 140;
+            const plotWidth = W - marginLeft - marginRight;
+            const barY = 480;
+            const barHeight = 84;
+            const axisY = barY + barHeight / 2 + 150;
+            
+            function toX(val) {
+                const clamped = Math.max(0, Math.min(val, xMax * 1.02));
+                return marginLeft + (clamped / (xMax * 1.02)) * plotWidth;
+            }
+            
+            // 1. Titles
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = '#0F2323';
+            ctx.font = 'bold 44px Inter, -apple-system, sans-serif';
+            ctx.fillText(`Household:Lift Benchmark Comparison | ${camp.category}`, marginLeft, 60);
+            
+            let subtitle = `Campaign: ${camp.display_name}  •  View: ${channelData.label}  •  Category Benchmark: n=${nCampaigns} (${reliability})`;
+            if (isExtremeOutlier && capScale) {
+                subtitle += '  •  [Scale capped to preserve readability]';
+            }
+            ctx.font = '500 25px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#0F2323';
+            ctx.fillText(subtitle, marginLeft, 125);
+            
+            // 2. Horizontal Bands
+            const x0 = toX(0);
+            const xP25 = toX(p25);
+            const xP75 = toX(p75);
+            const xEnd = toX(xMax);
+            
+            // Low Band (Magenta alpha 0.25)
+            ctx.fillStyle = 'rgba(201, 102, 204, 0.25)';
+            ctx.fillRect(x0, barY - barHeight/2, xP25 - x0, barHeight);
+            
+            // Typical Band (Blue alpha 0.25)
+            ctx.fillStyle = 'rgba(47, 134, 242, 0.25)';
+            ctx.fillRect(xP25, barY - barHeight/2, xP75 - xP25, barHeight);
+            
+            // Strong Band (Green alpha 0.25)
+            ctx.fillStyle = 'rgba(4, 166, 116, 0.25)';
+            ctx.fillRect(xP75, barY - barHeight/2, xEnd - xP75, barHeight);
+            
+            // 3. Annotations above bar (P25 & P75)
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            
+            ctx.font = 'bold 24px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#C966CC';
+            ctx.fillText('P25', xP25, barY - barHeight/2 - 40);
+            ctx.font = 'bold 26px Inter, -apple-system, sans-serif';
+            ctx.fillText(`+${p25.toFixed(1)}%`, xP25, barY - barHeight/2 - 12);
+            
+            ctx.font = 'bold 24px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#04A674';
+            ctx.fillText('P75', xP75, barY - barHeight/2 - 40);
+            ctx.font = 'bold 26px Inter, -apple-system, sans-serif';
+            ctx.fillText(`+${p75.toFixed(1)}%`, xP75, barY - barHeight/2 - 12);
+            
+            // 4. Median Line (Teal #17CCD3 dashed)
+            const xP50 = toX(p50);
+            ctx.save();
+            ctx.strokeStyle = '#17CCD3';
+            ctx.lineWidth = 4.5;
+            ctx.setLineDash([12, 8]);
+            ctx.beginPath();
+            ctx.moveTo(xP50, barY - barHeight/2 - 16);
+            ctx.lineTo(xP50, barY + barHeight/2 + 20);
+            ctx.stroke();
+            ctx.restore();
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = '#0F2323';
+            ctx.font = 'bold 25px Inter, -apple-system, sans-serif';
+            ctx.fillText('Typical (Median)', xP50, barY + barHeight/2 + 30);
+            ctx.font = 'bold 27px Inter, -apple-system, sans-serif';
+            ctx.fillText(`+${p50.toFixed(1)}%`, xP50, barY + barHeight/2 + 62);
+            
+            // 5. Grid lines & X-Axis
+            let tickStep = 20;
+            if (xMax > 2000) tickStep = 1000;
+            else if (xMax > 800) tickStep = 200;
+            else if (xMax > 300) tickStep = 100;
+            else if (xMax > 150) tickStep = 50;
+            else if (xMax > 60) tickStep = 20;
+            else tickStep = 10;
+            
+            ctx.save();
+            ctx.strokeStyle = 'rgba(15, 35, 35, 0.15)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 6]);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.font = '600 24px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#0F2323';
+            
+            for (let t = 0; t <= xMax * 1.02; t += tickStep) {
+                const tx = toX(t);
+                ctx.beginPath();
+                ctx.moveTo(tx, barY - barHeight/2);
+                ctx.lineTo(tx, axisY);
+                ctx.stroke();
+                
+                ctx.fillText(`+${t}%`, tx, axisY + 14);
+            }
+            ctx.restore();
+            
+            ctx.strokeStyle = '#0F2323';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(marginLeft, axisY);
+            ctx.lineTo(marginLeft + plotWidth, axisY);
+            ctx.stroke();
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.font = 'bold 28px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#0F2323';
+            ctx.fillText('Campaign Uplift (%)', marginLeft + plotWidth / 2, axisY + 58);
+            
+            // 6. Campaign Marker & Callout Box
+            const mPixelX = toX(markerX);
+            const calloutBottomY = barY - barHeight/2 - 100;
+            
+            ctx.strokeStyle = '#0F2323';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(mPixelX, barY);
+            ctx.lineTo(mPixelX, calloutBottomY);
+            ctx.stroke();
+            
+            if (isExtremeOutlier && capScale) {
+                ctx.save();
+                ctx.fillStyle = '#0F2323';
+                ctx.strokeStyle = '#DEEB52';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                const arrowSize = 24;
+                ctx.moveTo(mPixelX - arrowSize, barY - arrowSize * 1.2);
+                ctx.lineTo(mPixelX + arrowSize * 1.2, barY);
+                ctx.lineTo(mPixelX - arrowSize, barY + arrowSize * 1.2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            } else {
+                ctx.save();
+                ctx.fillStyle = '#0F2323';
+                ctx.strokeStyle = '#DEEB52';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.arc(mPixelX, barY, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            let line1 = `${camp.advertiser.toUpperCase()} (${channelData.label.toUpperCase()})`;
+            let line2 = `+${campaignUplift.toFixed(1)}% Uplift (${tier})`;
+            let line3 = '';
+            
+            if (channelMode === 'combined' && camp.is_multi_channel) {
+                const linUp = camp.channels['linear'].uplift.toFixed(1);
+                const vodUp = camp.channels['vod'].uplift.toFixed(1);
+                line3 = `Linear: +${linUp}% | VOD: +${vodUp}%`;
+            }
+            if (isExtremeOutlier && capScale) {
+                line2 = `+${campaignUplift.toFixed(1)}% Uplift (Strong — Extreme Outlier)`;
+                line3 = '▶ Extends beyond standard category scale' + (line3 ? ' | ' + line3 : '');
+            }
+            
+            ctx.font = 'bold 26px Inter, -apple-system, sans-serif';
+            const w1 = ctx.measureText(line1).width;
+            ctx.font = 'bold 28px Inter, -apple-system, sans-serif';
+            const w2 = ctx.measureText(line2).width;
+            ctx.font = '600 23px Inter, -apple-system, sans-serif';
+            const w3 = line3 ? ctx.measureText(line3).width : 0;
+            const boxContentW = Math.max(w1, w2, w3);
+            const boxPadX = 38;
+            const boxPadY = 24;
+            const boxW = boxContentW + boxPadX * 2;
+            const boxH = (line3 ? 125 : 85) + boxPadY;
+            
+            let boxLeft = mPixelX - boxW / 2;
+            if (mPixelX > xMax * 0.72) {
+                boxLeft = mPixelX - boxW + 40;
+            } else if (mPixelX < xMax * 0.20) {
+                boxLeft = mPixelX - 40;
+            }
+            if (boxLeft < marginLeft) boxLeft = marginLeft;
+            if (boxLeft + boxW > W - marginRight) boxLeft = W - marginRight - boxW;
+            const boxTop = calloutBottomY - boxH;
+            
+            ctx.save();
+            ctx.fillStyle = tierColor;
+            ctx.strokeStyle = (tier === 'Strong') ? '#DEEB52' : '#0F2323';
+            ctx.lineWidth = 3.5;
+            
+            const radius = 16;
+            ctx.beginPath();
+            ctx.moveTo(boxLeft + radius, boxTop);
+            ctx.lineTo(boxLeft + boxW - radius, boxTop);
+            ctx.quadraticCurveTo(boxLeft + boxW, boxTop, boxLeft + boxW, boxTop + radius);
+            ctx.lineTo(boxLeft + boxW, boxTop + boxH - radius);
+            ctx.quadraticCurveTo(boxLeft + boxW, boxTop + boxH, boxLeft + boxW - radius, boxTop + boxH);
+            ctx.lineTo(boxLeft + radius, boxTop + boxH);
+            ctx.quadraticCurveTo(boxLeft, boxTop + boxH, boxLeft, boxTop + boxH - radius);
+            ctx.lineTo(boxLeft, boxTop + radius);
+            ctx.quadraticCurveTo(boxLeft, boxTop, boxLeft + radius, boxTop);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FFFFFF';
+            const textCenterX = boxLeft + boxW / 2;
+            
+            ctx.font = 'bold 24px Inter, -apple-system, sans-serif';
+            ctx.fillText(line1, textCenterX, boxTop + 32);
+            
+            ctx.font = 'bold 27px Inter, -apple-system, sans-serif';
+            ctx.fillText(line2, textCenterX, boxTop + 66);
+            
+            if (line3) {
+                ctx.font = '600 21px Inter, -apple-system, sans-serif';
+                ctx.fillStyle = '#DEEB52';
+                ctx.fillText(line3, textCenterX, boxTop + 100);
+            }
+            ctx.restore();
+        }
+
+        // ==============================================================================
+        // CROSS CATEGORY OVERVIEW CANVAS DRAWING
+        // ==============================================================================
+        function drawOverviewChart() {
+            const canvas = document.getElementById('overviewCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            const W = 2400;
+            const H = 1360;
+            canvas.width = W;
+            canvas.height = H;
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, W, H);
+            
+            const core = benchmarksData.filter(b => b.valid_campaigns >= 5).sort((a, b) => a.typical_median_pct - b.typical_median_pct);
+            
+            const marginLeft = 380;
+            const marginRight = 160;
+            const plotW = W - marginLeft - marginRight;
+            const marginTop = 200;
+            const marginBottom = 180;
+            const plotH = H - marginTop - marginBottom;
+            
+            const xMax = 160;
+            function toX(val) {
+                return marginLeft + (Math.max(0, Math.min(val, xMax)) / xMax) * plotW;
+            }
+            
+            // Titles
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = '#0F2323';
+            ctx.font = 'bold 44px Inter, -apple-system, sans-serif';
+            ctx.fillText('Household:Lift Category Benchmark Ranges (HHL Only)', 80, 50);
+            
+            ctx.font = '500 24px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#556B6B';
+            ctx.fillText('Core Categories with n ≥ 5 campaigns  •  Low (Magenta), Typical (Blue), Median (Green)', 80, 110);
+            
+            const rowStep = plotH / (core.length);
+            const barH = 50;
+            
+            core.forEach((row, idx) => {
+                const y = marginTop + idx * rowStep + rowStep / 2;
+                
+                // Category Label
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.font = 'bold 26px Inter, -apple-system, sans-serif';
+                ctx.fillStyle = '#0F2323';
+                ctx.fillText(`${row.category} (n=${row.valid_campaigns})`, marginLeft - 30, y);
+                
+                // Low Bar
+                const x0 = toX(0);
+                const xP25 = toX(row.low_p25_pct);
+                const xP75 = toX(row.strong_p75_pct);
+                const xP50 = toX(row.typical_median_pct);
+                
+                ctx.fillStyle = 'rgba(201, 102, 204, 0.30)';
+                ctx.fillRect(x0, y - barH/2, xP25 - x0, barH);
+                ctx.strokeStyle = '#0F2323';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x0, y - barH/2, xP25 - x0, barH);
+                
+                // Typical Range Bar
+                ctx.fillStyle = 'rgba(47, 134, 242, 0.30)';
+                ctx.fillRect(xP25, y - barH/2, xP75 - xP25, barH);
+                ctx.strokeStyle = '#2F86F2';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(xP25, y - barH/2, xP75 - xP25, barH);
+                
+                // Median Dot
+                ctx.save();
+                ctx.fillStyle = '#0F2323';
+                ctx.strokeStyle = '#DEEB52';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(xP50, y, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+                
+                // Median Text
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.font = 'bold 24px Inter, -apple-system, sans-serif';
+                ctx.fillStyle = '#04A674';
+                ctx.fillText(`+${row.typical_median_pct.toFixed(1)}%`, xP50, y - barH/2 - 8);
+            });
+            
+            // X-Axis
+            const axisY = H - marginBottom + 20;
+            ctx.strokeStyle = '#0F2323';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(marginLeft, axisY);
+            ctx.lineTo(marginLeft + plotW, axisY);
+            ctx.stroke();
+            
+            // Grid and Ticks
+            ctx.save();
+            ctx.strokeStyle = 'rgba(15, 35, 35, 0.15)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 6]);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.font = '600 24px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#0F2323';
+            
+            for (let t = 0; t <= xMax; t += 20) {
+                const tx = toX(t);
+                ctx.beginPath();
+                ctx.moveTo(tx, marginTop - 20);
+                ctx.lineTo(tx, axisY);
+                ctx.stroke();
+                ctx.fillText(`+${t}%`, tx, axisY + 12);
+            }
+            ctx.restore();
+            
+            // Axis Label
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.font = 'bold 28px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#0F2323';
+            ctx.fillText('Campaign Uplift (%)', marginLeft + plotW / 2, axisY + 54);
+            
+            // Legend
+            const legX = W - marginRight - 560;
+            const legY = H - marginBottom + 8;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.strokeStyle = '#0F2323';
+            ctx.lineWidth = 2;
+            ctx.fillRect(legX, legY, 540, 60);
+            ctx.strokeRect(legX, legY, 540, 60);
+            
+            // Low legend item
+            ctx.fillStyle = 'rgba(201, 102, 204, 0.35)';
+            ctx.fillRect(legX + 16, legY + 18, 26, 24);
+            ctx.strokeRect(legX + 16, legY + 18, 26, 24);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.font = '600 18px Inter, -apple-system, sans-serif';
+            ctx.fillStyle = '#0F2323';
+            ctx.fillText('Low (0 - P25)', legX + 50, legY + 30);
+            
+            // Typical legend item
+            ctx.fillStyle = 'rgba(47, 134, 242, 0.35)';
+            ctx.fillRect(legX + 180, legY + 18, 26, 24);
+            ctx.strokeStyle = '#2F86F2';
+            ctx.strokeRect(legX + 180, legY + 18, 26, 24);
+            ctx.fillText('Typical (P25 - P75)', legX + 214, legY + 30);
+            
+            // Median legend dot
+            ctx.fillStyle = '#0F2323';
+            ctx.strokeStyle = '#DEEB52';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(legX + 410, legY + 30, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillText('Median', legX + 428, legY + 30);
+        }
+
+        function renderTable(data) {
+            const tbody = document.querySelector('#benchmarksTable tbody');
+            tbody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:700;">${row.category}</td>
+                    <td style="font-weight:600;">${row.valid_campaigns}</td>
+                    <td><span class="${row.badge_class}">${row.reliability}</span></td>
+                    <td style="color:var(--itv-magenta); font-weight:700;">+${row.low_p25_pct.toFixed(1)}%</td>
+                    <td style="color:var(--itv-blue); font-weight:800; font-size:0.95rem;">+${row.typical_median_pct.toFixed(1)}%</td>
+                    <td style="color:var(--itv-green); font-weight:700;">+${row.strong_p75_pct.toFixed(1)}%</td>
+                    <td style="font-size:0.8rem; color:#556B6B;">+${row.min_pct.toFixed(1)}% to +${row.max_pct.toFixed(1)}%</td>
+                    <td>${row.unique_advertisers}</td>
+                    <td>${row.total_impressions_m.toFixed(1)}M</td>
+                    <td>£${Number(row.total_spend_gbp).toLocaleString()}</td>
+                    <td style="text-align:center;">
+                        <button class="row-btn" onclick="goToCategory('${row.category}')">View in PCA</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterTable(type, btn) {
+            document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (type === 'all') {
+                renderTable(benchmarksData);
+            } else if (type === 'core') {
+                renderTable(benchmarksData.filter(r => r.valid_campaigns >= 5));
+            } else if (type === 'robust') {
+                renderTable(benchmarksData.filter(r => r.valid_campaigns >= 10));
+            } else if (type === 'directional') {
+                renderTable(benchmarksData.filter(r => r.valid_campaigns < 5));
+            }
+        }
+
+        function goToCategory(category) {
+            switchTab('tab-campaign');
+            const catSelect = document.getElementById('categorySelect');
+            catSelect.value = category;
+            onCategoryChange();
+        }
+
+        function exportTableCSV() {
+            let csv = "category,valid_campaigns,reliability,low_p25_pct,typical_median_pct,strong_p75_pct,min_pct,max_pct,unique_advertisers,total_impressions_m,total_spend_gbp\n";
+            benchmarksData.forEach(r => {
+                csv += `"${r.category}",${r.valid_campaigns},"${r.reliability}",${r.low_p25_pct},${r.typical_median_pct},${r.strong_p75_pct},${r.min_pct},${r.max_pct},${r.unique_advertisers},${r.total_impressions_m},${r.total_spend_gbp}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'itv_household_lift_benchmarks.csv';
+            a.click();
+        }
+
+        function downloadChart() {
+            const canvas = document.getElementById('pcaCanvas');
+            const campId = document.getElementById('campaignSelect').value;
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = `${campId}_${currentChannelMode}_benchmark.png`;
+            a.click();
+        }
+
+        function downloadOverviewChart() {
+            const canvas = document.getElementById('overviewCanvas');
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = 'itv_hhl_category_benchmarks_overview.png';
+            a.click();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
